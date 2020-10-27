@@ -1,0 +1,284 @@
+//variables
+//5 CC, 6SF
+
+var Score=5;
+var CandyCanes=5;
+var Enemy=5;
+var seconds=0;
+var gameOver=false;
+var playagain=false;
+
+
+
+setText("text_input1", "Score:"+Score);
+// play button id is start, once clicked go to play screen
+onEvent("start", "click", function() {
+//want to hide player, enemy and candycanes
+hideposition();
+if(gameOver)
+reset();
+setScreen("Play");
+
+});
+
+
+
+function hideposition()
+{
+hideElement("CC1");
+hideElement("SF1");
+hideElement("CC2");
+hideElement("SF2");
+hideElement("CC3");
+hideElement("SF3");
+hideElement("CC4");
+hideElement("SF4");
+hideElement("CC5");
+hideElement("SF5");
+hideElement("SF6");
+hideElement("player");
+
+//players intial postion at start of the game
+  setPosition("player",154,397);
+  //setting a random postion for the snowflakes
+  setPosition("SF1", randomNumber(21, 22), randomNumber(50, 80));
+   setPosition("SF2", randomNumber(22, 22), randomNumber(180, 300));
+   setPosition("SF3", randomNumber(219, 273), randomNumber(120, 150));
+   setPosition("SF4", randomNumber(100, 120), randomNumber(200, 280));
+   setPosition("SF5", randomNumber(140,200), randomNumber(290, 300));
+   setPosition("SF6", randomNumber(180, 230), randomNumber(194, 225));
+}
+//when player clicks the play button Show Player, SF and CC
+ onEvent("button1", "click", function( ) {
+    showElement("SF1");
+    showElement("CC1");
+    showElement("SF2"); 
+    showElement("CC2");
+    showElement("SF3");
+    showElement("CC3");
+    showElement("SF3");
+    showElement("SF4");
+    showElement("SF5");
+    showElement("CC5");
+    showElement("SF6");
+    showElement("player");
+ });
+//need to pass event to function inorder to use event.key 
+//function(event)- call back function every time a event happens
+//in this case it will be called back when a key is moved 
+//cannot delcare event can only use it for program 
+onEvent("Play", "keydown", function(event) {
+//getting the postion of the player 
+  var playerX = getXPosition("player");
+  var playerY = getYPosition("player");
+  //how much the object can travel
+  var distance = 25;
+//determining what key was pressed and changing postion based on key that was pressed
+  if (event.key == "Up") {
+    playerY = playerY - distance;
+  }
+  if (event.key == "Down") {
+    playerY = playerY + distance;
+  }
+  if (event.key == "Left") {
+    playerX = playerX - distance;
+  }
+  if (event.key == "Right") {
+    playerX = playerX + distance;
+  }
+  //setting the players new postion id,x,y
+  setPosition("player", playerX, playerY);
+  //pass player id in order for the player to be able to wrap around
+  GoAround("player");
+Check(seconds,Score);
+  
+});
+//object can wrap around 
+function GoAround(object) {
+  var objectX = getXPosition(object);
+  var objectY = getYPosition(object);
+  var objectWidth = getProperty(object, "width");
+  var objectHeight = getProperty(object, "height");
+  //left
+  if (objectX < 0-(objectWidth/2)) 
+  {
+    //object make object to the right
+    objectX = 320-(objectWidth/2);
+  } 
+  //right
+  else if ((objectX > 320-(objectWidth/2))) 
+  {
+    objectX = 0-(objectWidth/2);
+  }
+  //up
+  else if ((objectY < 0-(objectHeight/2))) 
+  {
+    objectY = 450 - (objectHeight/2);
+  } 
+  //down
+  else if ((objectY > 450-(objectHeight/2))) {
+
+    objectY = 0-(objectHeight/2);
+  }
+setPosition(object, objectX, objectY);
+}
+//when the player clicks the play button
+onEvent("button1","click",function()
+{
+  if(playagain)
+  {
+  gameOver=false;
+  playagain=false;  
+  }
+  
+  //1000ms, so one second 
+  timedLoop(1000,function(){
+  if(!gameOver)
+  {
+  seconds=seconds+1;
+  }
+  //console.log(seconds+"seconds have elapsed");
+//display the time in the text box
+  setText("text_input2","Time "+seconds);
+});
+//move object
+timedLoop(1000,function()
+{
+  timedLoop(337,function()
+  {
+moveObject("SF1",0,-1);
+moveObject("SF2",0,-1);
+moveObject("SF3",0,-1);
+moveObject("SF4",0,-1);
+moveObject("SF5",0,-1);
+moveObject("SF6",0,-1);
+// detect collision for enemy and candycanes
+collisionDetection("SF1",true);
+collisionDetection("SF2",true);
+collisionDetection("SF3",true);
+collisionDetection("SF4",true);
+collisionDetection("SF5",true);
+collisionDetection("SF6",true);
+
+collisionDetection1("CC1");
+collisionDetection1("CC2");
+collisionDetection1("CC3");
+collisionDetection1("CC4");
+collisionDetection1("CC5");
+});
+});
+});
+
+function  moveObject(object,x,y)
+{
+  var X=getXPosition(object)+x;
+   var Y=getYPosition(object)+y;
+   setPosition(object,X,Y);
+   //object might be moving towards the end of screen
+   GoAround(object);
+}  
+function collisionDetection(object,isEnemy)
+{
+//player
+var PlayerX=getXPosition("player");
+var PlayerY=getYPosition("player");
+var PlayerHeight=getProperty("player","height");
+var PlayerWidth=getProperty("player","width");
+//object
+var ObjX=getXPosition(object);
+var ObjY=getYPosition(object);
+var ObjHeight=getProperty(object,"height");
+var ObjWidth=getProperty(object,"width");
+//right//left
+if(PlayerX+PlayerWidth>=ObjX&&PlayerX<=ObjX+ObjWidth)
+{
+  if(PlayerY+PlayerHeight>=ObjY&&PlayerY<=ObjY+ObjHeight)
+  {
+    if(isEnemy==true&&!gameOver&&!getProperty(object,"hidden"))
+        {       
+            hideElement(object);
+              Score=Score-Enemy;
+            setText("text_input1","Score"+Score);
+        } 
+    Check(seconds,Score);
+  } 
+ 
+  
+} 
+
+    } 
+
+function collisionDetection1(CC)
+{
+//player
+var PlayerX=getXPosition("player");
+var PlayerY=getYPosition("player");
+var PlayerHeight=getProperty("player","height");
+var PlayerWidth=getProperty("player","width");
+//CC
+var CCX=getXPosition(CC);
+var CCY=getYPosition(CC);
+var CCHeight=getProperty(CC,"height");
+var CCWidth=getProperty(CC,"width");
+
+if(PlayerX+PlayerWidth>= CCX &&PlayerX<=CCX+CCWidth)
+{
+  if(PlayerY+PlayerHeight>=CCY&&PlayerY<=CCY+CCHeight)
+  {
+    
+    if(!gameOver&&!getProperty(CC,"hidden"))
+    {
+      hideElement(CC);
+      Score=Score+CandyCanes;
+      setText("text_input1","Score:"+Score);
+        
+    }
+     Check(seconds,Score);
+  }
+  
+  
+ }  
+}
+function Check (seconds,Score)
+{
+  if(!gameOver)
+  {
+  if(Score==20&&seconds<=20)
+  {
+    gameOver=true;
+    setScreen("WinScreen");
+    setText("Win_Seconds","Seconds:"+ seconds);
+    setText("Win_Score","Score:"+Score);
+   // console.log("Win");
+  //  console.log("seconds:"+seconds);
+  //   console.log("Score:"+Score);
+  }
+  else if(seconds>20||Score<=0)
+  {
+    gameOver=true;
+     setScreen("LOST");
+    setText("LOST_Seconds","Seconds:"+ seconds);
+    setText("LOST_Score","Score:"+Score);
+    
+  }
+}
+}  
+// player decides to play again   
+ onEvent("LOST_reset", "click", function( ) 
+ {
+    setScreen("Welcome");
+    
+  });
+  onEvent("Win_reset", "click", function( ) {
+       setScreen("Welcome");
+  
+   });
+
+function reset()
+  {
+    seconds=0;
+    Score=5;
+    setText("text_input1", "Score:"+Score);
+    playagain=true;
+  }  
+  
